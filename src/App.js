@@ -5,31 +5,23 @@ import AddTodo from './components/AddTodo'
 import Header from './components/layout/Header';
 import About from './components/pages/About'
 import './App.css';
-import uuid from 'uuid';
 import fire from './fire';
-
+import uuid from 'uuid';
 
 class App extends Component {
-  constructor(props){
-    super(props);
-    this.state={
-      todos: [{
-        title: null,
-        completed: null
-      }]
-    }
-  }
-
+  state = {
+    todos: []
+  };
   componentDidMount(){
     let todosRef = fire.database().ref('todos');
   
     todosRef.on('child_added', snapshot =>
     {
       console.log(snapshot.val())
-      this.setState({todos: Array.from(snapshot.val())})
+      let data = Array.from(snapshot.val());
+      this.setState({todos: data})
     })
   };
-  
   // Toggles complete
   markComplete = (id) => {
     this.setState({
@@ -41,37 +33,38 @@ class App extends Component {
       })
     });
   };
-  
+
   // Delete todo item
   delTodo = (id) => {
     fire.database().ref(`todos/${id}`).remove()
-      .then(function(){
+      .then(function () {
         this.setState({
-          // Loop through todos array and filter out item with provided ID
-          // ... is the spread operator, used here to copy the todos array
-					todos: [...this.state.todos.filter((todo) => todo.id !== id)]
-        })
-      .catch(function(error){
-        console.log("Remove failed: " + error.message);
-      })
-    });
+            // Loop through todos array and filter out item with provided ID
+            // ... is the spread operator, used here to copy the todos array
+            todos: [...this.state.todos.filter((todo) => todo.id !== id)]
+          })
+          .catch(function (error) {
+            console.log("Remove failed: " + error.message);
+          })
+      });
   };
-  
+
   // Add todo
   addTodo = (title) => {
     let id = uuid.v4();
     let database = fire.database();
     let todosRef = database.ref(`todos/${id}`);
     let newTodo = {
-      id: this.id,
+      id: id,
       title: title,
       completed: false
     }
     todosRef.set(newTodo).then(
-      this.setState({todos: [...this.state.todos, newTodo]})
+      this.setState({
+        todos: [...this.state.todos, newTodo]
+      })
     );
   };
-
   render() {
 		return (
 			<Router>
