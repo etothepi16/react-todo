@@ -3,12 +3,10 @@ import PropTypes from 'prop-types'
 
 export class AddTodo extends Component {
     state = {
-        id: null,
         title: '',
-        completed: false
     }
 
-    onChange = (e) => this.setState({[e.target.name]: e.target.value});
+    onChange = (e) => this.setState({title: e.target.value});
     onSubmit = (e) => {
         e.preventDefault();
         this.props.addTodo(this.state.title);

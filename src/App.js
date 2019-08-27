@@ -12,22 +12,37 @@ class App extends Component {
   state = {
     todos: []
   };
+
   componentDidMount(){
-    let todosRef = fire.database().ref('todos');
-  
-    todosRef.on('child_added', snapshot =>
-    {
-      console.log(snapshot.val())
-      let data = Array.from(snapshot.val());
-      this.setState({todos: data})
+
+    const todoItem ={
+      id: null,
+      title: '',
+      completed: false
+    };
+    let todosArray = [];
+    let todosRef = fire.database().ref('todos/');
+    todosRef.once("value").then((snapshot) => {
+        snapshot.forEach(function(childSnapshot){
+          const todo = Object.create(todoItem)
+          todo.id = childSnapshot.key;
+          todo.title = childSnapshot.val().title;
+          todo.completed = false;
+          console.log(todo);
+          todosArray.push(todo);
+        })
+     
+        this.setState({todos: todosArray})
     })
   };
   // Toggles complete
   markComplete = (id) => {
+    let todoRef = fire.database().ref(`todos/${id}`);
     this.setState({
       todos: this.state.todos.map(todo => {
         if (todo.id === id) {
           todo.completed = !todo.completed;
+          todoRef.update({"completed":todo.completed});
         }
         return todo;
       })
@@ -37,16 +52,11 @@ class App extends Component {
   // Delete todo item
   delTodo = (id) => {
     fire.database().ref(`todos/${id}`).remove()
-      .then(function () {
-        this.setState({
-            // Loop through todos array and filter out item with provided ID
-            // ... is the spread operator, used here to copy the todos array
-            todos: [...this.state.todos.filter((todo) => todo.id !== id)]
-          })
-          .catch(function (error) {
-            console.log("Remove failed: " + error.message);
-          })
-      });
+    this.setState({
+      // Loop through todos array and filter out item with provided ID
+      // ... is the spread operator, used here to copy the todos array
+      todos: [...this.state.todos.filter((todo) => todo.id !== id)]
+    })
   };
 
   // Add todo
@@ -65,6 +75,7 @@ class App extends Component {
       })
     );
   };
+
   render() {
 		return (
 			<Router>
